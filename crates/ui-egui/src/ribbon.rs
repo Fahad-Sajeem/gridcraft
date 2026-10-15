@@ -1691,6 +1691,10 @@ fn view(app: &mut SheetApp, ui: &mut Ui) {
         });
     });
     sep(ui);
+    if big_button(ui, Icon::Sparkline, "AI Chat", "AI Chat (Sign in with ChatGPT)", false).clicked() {
+        act(app, "view.aiChat", json!({}));
+    }
+    sep(ui);
     // Interface language: settings live in the View tab, like Excel's Options. The label follows
     // the current language so it stays readable; the choices are always shown in their own script.
     ui.vertical(|ui| {

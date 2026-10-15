@@ -6,6 +6,7 @@
 #![deny(clippy::unwrap_used, clippy::expect_used, clippy::panic, clippy::unimplemented, clippy::todo, clippy::unreachable)]
 #![forbid(unsafe_code)]
 
+pub mod ai_pane;
 mod border_preview;
 mod cell_pictures;
 pub mod chartview;
@@ -162,6 +163,8 @@ pub struct SheetApp {
     /// Chart selected on the sheet (id).
     pub selected_chart: Option<u32>,
     pub started: f64,
+    /// Right-hand AI chat (Sign in with ChatGPT + agent).
+    pub ai: ai_pane::AiState,
 }
 
 impl SheetApp {
@@ -194,6 +197,7 @@ impl SheetApp {
             shots: control::Shots::default(),
             selected_chart: None,
             started: now_ms(),
+            ai: ai_pane::AiState::default(),
         }
     }
 
@@ -320,6 +324,10 @@ impl SheetApp {
                 Ok(json!({"mode": self.ui.theme_mode()}))
             }
             "view.zoom100" => return Some(self.session.run("view.zoom", json!({"percent": 100})).inspect(|_| self.after_engine())),
+            "view.aiChat" => {
+                self.ai.open = p.get("on").and_then(Json::as_bool).unwrap_or(!self.ai.open);
+                Ok(json!({"on": self.ai.open}))
+            }
             "app.language.set" => {
                 // `{"language": "ja"}`; `code` is accepted as an alias.
                 let code = p.get("language").or_else(|| p.get("code")).and_then(Json::as_str).unwrap_or("");
@@ -617,6 +625,7 @@ impl SheetApp {
         tabs::sheet_tabs(self, ui);
         pivot_pane::show(self, ui);
         panes::show(self, ui);
+        ai_pane::show(self, ui);
         egui::CentralPanel::default().frame(egui::Frame::NONE.fill(t.grid_bg)).show(ui, |ui| {
             let g0 = now_ms();
             grid::show(self, ui);

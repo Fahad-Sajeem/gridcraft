@@ -23,6 +23,8 @@ egui_kittest = { workspace = true, features = ["wgpu", "snapshot"] }
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 # The desktop's preferred language for the first-run interface language.
 sys-locale = { workspace = true }
+# Sign in with ChatGPT + Responses API (AI chat agent).
+gridcraft-chatgpt = { workspace = true }
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 # Read the browser's preferred language for the first-run web interface language.

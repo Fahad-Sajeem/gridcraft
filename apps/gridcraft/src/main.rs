@@ -151,14 +151,14 @@ fn services() -> Services {
                 .and_then(|p| p.to_str().map(str::to_string))
         })),
         open_url: Some(Box::new(|url: &str| {
-            let cmd = if cfg!(target_os = "macos") {
-                "open"
+            // Windows: `rundll32` opens https URLs with `&` intact (unlike `cmd start`).
+            let _ = if cfg!(target_os = "macos") {
+                std::process::Command::new("open").arg(url).spawn()
             } else if cfg!(windows) {
-                "explorer"
+                std::process::Command::new("rundll32").args(["url.dll,FileProtocolHandler", url]).spawn()
             } else {
-                "xdg-open"
+                std::process::Command::new("xdg-open").arg(url).spawn()
             };
-            let _ = std::process::Command::new(cmd).arg(url).spawn();
         })),
         ..Default::default()
     }
@@ -247,6 +247,9 @@ fn main() -> eframe::Result<()> {
     app.after_engine(); // Show warnings from files opened on the command line.
     let control_port = control_port;
     load_prefs(&mut app);
+    if let Some(dir) = config_dir() {
+        app.ai.set_config_dir(dir);
+    }
     let mut viewport = egui::ViewportBuilder::default()
         .with_title("GridCraft")
         .with_inner_size([1440.0, 900.0])
